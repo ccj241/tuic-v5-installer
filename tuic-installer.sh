@@ -73,20 +73,33 @@ download_tuic() {
 
     info "Fetching latest release version..."
     local latest
-    latest=$(curl -s "https://api.github.com/repos/EAimTY/tuic/releases" \
-        | jq -r '[.[] | select(.tag_name | startswith("tuic-server"))][0].tag_name')
+
+    # Try GitHub API with redirect following (-L), fallback to hardcoded version
+    latest=$(curl -sL "https://api.github.com/repos/EAimTY/tuic/releases" \
+        | jq -r '[.[] | select(.tag_name | startswith("tuic-server"))][0].tag_name' 2>/dev/null)
 
     if [ -z "$latest" ] || [ "$latest" = "null" ]; then
-        error "Failed to fetch latest version from GitHub."
+        # Fallback: try the redirected repo URL directly
+        latest=$(curl -sL "https://api.github.com/repositories/440810736/releases" \
+            | jq -r '[.[] | select(.tag_name | startswith("tuic-server"))][0].tag_name' 2>/dev/null)
+    fi
+
+    if [ -z "$latest" ] || [ "$latest" = "null" ]; then
+        warn "Failed to fetch version from API, using fallback version."
+        latest="tuic-server-1.0.0"
     fi
     info "Latest version: $latest"
 
-    local download_url="https://github.com/EAimTY/tuic/releases/download/$latest/$latest-$server_arch"
-
     info "Downloading tuic-server..."
     mkdir -p "$INSTALL_DIR"
-    if ! wget -O "$INSTALL_DIR/tuic-server" -q "$download_url"; then
-        error "Failed to download tuic-server from: $download_url"
+
+    # Try multiple download sources
+    local download_url="https://github.com/EAimTY/tuic/releases/download/$latest/$latest-$server_arch"
+    if ! wget -O "$INSTALL_DIR/tuic-server" -q "$download_url" 2>/dev/null; then
+        download_url="https://github.com/tuic-protocol/tuic/releases/download/$latest/$latest-$server_arch"
+        if ! wget -O "$INSTALL_DIR/tuic-server" -q "$download_url" 2>/dev/null; then
+            error "Failed to download tuic-server. Tried multiple sources."
+        fi
     fi
     chmod 755 "$INSTALL_DIR/tuic-server"
     info "Download complete."
@@ -171,7 +184,7 @@ show_result() {
     local uuid="$3"
 
     local public_ip
-    public_ip=$(curl -s https://api.ipify.org 2>/dev/null || curl -s https://ifconfig.me 2>/dev/null || echo "YOUR_SERVER_IP")
+    public_ip=$(curl -sL https://api.ipify.org 2>/dev/null || curl -sL https://ifconfig.me 2>/dev/null || echo "YOUR_SERVER_IP")
 
     sleep 2
     if systemctl is-active --quiet tuic; then
