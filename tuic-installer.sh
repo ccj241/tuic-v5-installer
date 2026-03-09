@@ -74,13 +74,13 @@ download_tuic() {
     info "Fetching latest release version..."
     local latest
 
-    # Try GitHub API with redirect following (-L), fallback to hardcoded version
-    latest=$(curl -sL "https://api.github.com/repos/EAimTY/tuic/releases" \
-        | jq -r '[.[] | select(.tag_name | startswith("tuic-server"))][0].tag_name' 2>/dev/null)
+    # Primary: our own mirror repo
+    latest=$(curl -sL "https://api.github.com/repos/ccj241/tuic-v5-installer/releases/latest" \
+        | jq -r '.tag_name' 2>/dev/null)
 
+    # Fallback: upstream repo (may redirect)
     if [ -z "$latest" ] || [ "$latest" = "null" ]; then
-        # Fallback: try the redirected repo URL directly
-        latest=$(curl -sL "https://api.github.com/repositories/440810736/releases" \
+        latest=$(curl -sL "https://api.github.com/repos/EAimTY/tuic/releases" \
             | jq -r '[.[] | select(.tag_name | startswith("tuic-server"))][0].tag_name' 2>/dev/null)
     fi
 
@@ -93,13 +93,23 @@ download_tuic() {
     info "Downloading tuic-server..."
     mkdir -p "$INSTALL_DIR"
 
-    # Try multiple download sources
-    local download_url="https://github.com/EAimTY/tuic/releases/download/$latest/$latest-$server_arch"
-    if ! wget -O "$INSTALL_DIR/tuic-server" -q "$download_url" 2>/dev/null; then
-        download_url="https://github.com/tuic-protocol/tuic/releases/download/$latest/$latest-$server_arch"
-        if ! wget -O "$INSTALL_DIR/tuic-server" -q "$download_url" 2>/dev/null; then
-            error "Failed to download tuic-server. Tried multiple sources."
+    # Try download sources in order: own mirror -> upstream
+    local downloaded=false
+    local urls=(
+        "https://github.com/ccj241/tuic-v5-installer/releases/download/$latest/$latest-$server_arch"
+        "https://github.com/EAimTY/tuic/releases/download/$latest/$latest-$server_arch"
+        "https://github.com/tuic-protocol/tuic/releases/download/$latest/$latest-$server_arch"
+    )
+
+    for url in "${urls[@]}"; do
+        if curl -sL -o "$INSTALL_DIR/tuic-server" --fail "$url" 2>/dev/null; then
+            downloaded=true
+            break
         fi
+    done
+
+    if [ "$downloaded" = false ]; then
+        error "Failed to download tuic-server. Tried all sources."
     fi
     chmod 755 "$INSTALL_DIR/tuic-server"
     info "Download complete."
