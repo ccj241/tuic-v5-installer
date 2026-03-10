@@ -1,5 +1,7 @@
 # TUIC v5 One-Click Installer
 
+> Probably the best TUIC v5 one-click installer. | 可能是最好用的 TUIC v5 一键安装脚本。
+
 [English](#english) | [中文](#中文)
 
 ---
@@ -8,17 +10,19 @@
 
 ## English
 
-A one-click installation script for [TUIC v5](https://github.com/EAimTY/tuic) proxy server on Linux.
+A one-click installation & management script for [TUIC v5](https://github.com/EAimTY/tuic) proxy server on Linux.
 
 ### Features
 
-- Automatic architecture detection (x86_64 / aarch64 / armv7)
-- Fetches latest tuic-server release from GitHub
+- Automatic architecture detection (x86_64 / aarch64 / armv7 / i686)
+- Self-hosted binary mirror — no dependency on upstream repo availability
 - Self-signed certificate generation
 - Systemd service with auto-start on boot
 - Interactive & non-interactive (headless) installation modes
-- Built-in management: reinstall / modify / uninstall / show info
+- **`tuic` shortcut command** — manage TUIC anytime by just typing `tuic`
+- Built-in management: reinstall / modify / uninstall / show info / status / restart
 - Outputs ready-to-use client URL (NekoBox / v2rayN / Clash Meta)
+- All prompts in Chinese for ease of use
 
 ### Requirements
 
@@ -42,20 +46,18 @@ Port and password will be randomly generated.
 
 ### Management
 
-Run the script again on a server where TUIC is already installed:
-
-```bash
-bash tuic-installer.sh
-```
-
-You will see the management menu:
+After installation, simply type `tuic` to open the management menu:
 
 ```
-1) Reinstall
-2) Modify (port/password)
-3) Uninstall
-4) Show connection info
-0) Exit
+TUIC 已安装，请选择操作:
+
+  1) 重新安装
+  2) 修改配置 (端口/密码)
+  3) 卸载
+  4) 查看连接信息
+  5) 查看运行状态
+  6) 重启服务
+  0) 退出
 ```
 
 ### Client Configuration
@@ -79,17 +81,10 @@ Import this URL directly into your client:
 ### Service Commands
 
 ```bash
-# Check status
-systemctl status tuic
-
-# Restart
-systemctl restart tuic
-
-# Stop
-systemctl stop tuic
-
-# View logs
-journalctl -u tuic -f
+systemctl status tuic      # Check status
+systemctl restart tuic     # Restart
+systemctl stop tuic        # Stop
+journalctl -u tuic -f      # View logs
 ```
 
 ### File Locations
@@ -101,6 +96,7 @@ journalctl -u tuic -f
 | Certificate | `/root/tuic/ca.crt` |
 | Private Key | `/root/tuic/ca.key` |
 | Systemd Service | `/etc/systemd/system/tuic.service` |
+| Shortcut Command | `/usr/local/bin/tuic` |
 
 ---
 
@@ -108,17 +104,19 @@ journalctl -u tuic -f
 
 ## 中文
 
-适用于 Linux 的 [TUIC v5](https://github.com/EAimTY/tuic) 代理服务端一键安装脚本。
+可能是最好用的 [TUIC v5](https://github.com/EAimTY/tuic) 代理服务端一键安装脚本。
 
 ### 功能特性
 
-- 自动检测系统架构（x86_64 / aarch64 / armv7）
-- 自动从 GitHub 获取最新 tuic-server 版本
+- 自动检测系统架构（x86_64 / aarch64 / armv7 / i686）
+- 自建二进制镜像，不依赖上游仓库可用性
 - 自动生成自签名 SSL 证书
 - 创建 systemd 服务，开机自启
 - 支持交互式和非交互式（无人值守）安装
-- 内置管理功能：重装 / 修改配置 / 卸载 / 查看连接信息
+- **安装后输入 `tuic` 即可管理**，无需记住脚本路径
+- 内置管理功能：重装 / 修改配置 / 卸载 / 查看连接信息 / 查看状态 / 重启服务
 - 安装完成后直接输出客户端导入链接
+- 全中文提示，使用更友好
 
 ### 系统要求
 
@@ -140,22 +138,20 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ccj241/tuic-v5-installer/mai
 
 端口和密码将自动随机生成。
 
-### 管理已安装的 TUIC
+### 安装后管理
 
-在已安装 TUIC 的服务器上再次运行脚本：
-
-```bash
-bash tuic-installer.sh
-```
-
-将出现管理菜单：
+安装完成后，随时输入 `tuic` 即可打开管理菜单：
 
 ```
-1) 重新安装
-2) 修改配置（端口/密码）
-3) 卸载
-4) 显示连接信息
-0) 退出
+TUIC 已安装，请选择操作:
+
+  1) 重新安装
+  2) 修改配置 (端口/密码)
+  3) 卸载
+  4) 查看连接信息
+  5) 查看运行状态
+  6) 重启服务
+  0) 退出
 ```
 
 ### 客户端配置
@@ -179,17 +175,10 @@ tuic://UUID:PASSWORD@SERVER_IP:PORT/?congestion_control=bbr&alpn=h3,spdy/3.1&udp
 ### 服务管理命令
 
 ```bash
-# 查看状态
-systemctl status tuic
-
-# 重启服务
-systemctl restart tuic
-
-# 停止服务
-systemctl stop tuic
-
-# 查看日志
-journalctl -u tuic -f
+systemctl status tuic      # 查看状态
+systemctl restart tuic     # 重启服务
+systemctl stop tuic        # 停止服务
+journalctl -u tuic -f      # 查看日志
 ```
 
 ### 文件位置
@@ -201,6 +190,7 @@ journalctl -u tuic -f
 | 证书 | `/root/tuic/ca.crt` |
 | 私钥 | `/root/tuic/ca.key` |
 | 系统服务 | `/etc/systemd/system/tuic.service` |
+| 快捷命令 | `/usr/local/bin/tuic` |
 
 ---
 
